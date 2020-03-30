@@ -1,0 +1,32 @@
+[
+  {
+    "command": "editor.action.goToDeclaration",
+    "key": "shift+ctrl+d",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "command": "editor.action.goToDeclaration",
+    "key": "shift+ctrl+d",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "command": "editor.action.goToDeclaration",
+    "key": "shift+ctrl+d",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "command": "editor.action.goToDeclaration",
+    "key": "shift+ctrl+d",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "command": "editor.action.goToDeclaration",
+    "key": "shift+ctrl+d",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "command": "editor.action.goToDeclaration",
+    "key": "shift+ctrl+d",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  }
+]
