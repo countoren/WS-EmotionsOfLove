@@ -15,3 +15,5 @@ release.sh
 deploy
 .ionide/
 .vscode-exts/
+keybindings.json
+settings.json

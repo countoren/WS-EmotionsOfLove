@@ -12,6 +12,10 @@ mkShell {
     ( vscodeEnv { 
       mutableExtensionsFile = ./extension.nix; 
       nixExtensions = [ ];
+      settings = {
+        "FSharp.smartIndent" = true;
+      };
+
     })
     
   ];
