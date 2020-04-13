@@ -1,6 +1,8 @@
 module Client
 
+open Elmish.UrlParser
 open Elmish
+open Elmish.Navigation
 open Elmish.React
 open Fable.React
 open Fable.React.Props
@@ -11,103 +13,76 @@ open Thoth.Json
 
 open Shared
 
-// The model holds data that you want to keep track of while the application is running
-// in this case, we are keeping track of a counter
-// we mark it as optional, because initially it will not be available from the client
-// the initial value will be requested from server
-type Model =
-    { Counter: Counter option }
 
-// The Msg type defines what events/actions can occur while the application is running
-// the state of the application changes *only* in reaction to these events
-type Msg =
-    | Increment
-    | Decrement
-    | InitialCountLoaded of Counter
+type Program = {
+    url : string 
+    navbarTitle : string 
+    view : ReactElement
+}
 
-let initialCounter() = Fetch.fetchAs<Counter> "/api/init"
+[<RequireQualifiedAccessAttribute>]
+type Page = 
+   | Home
+   | About
+   | Destiny
+   | Sessions
+   | ContactMe
+
+let toPath =
+    function
+    | Page.Home -> "/"
+    | Page.About -> "/about"
+    | Page.Destiny -> "/destiny"
+    | Page.Sessions -> "/session"
+    | Page.ContactMe -> "/contactMe"
+
+type Msg = Page
+
+let pageParser =
+    let map = UrlParser.map
+    let s = UrlParser.s
+    oneOf
+        [ map Page.Home (s "")
+          map Page.About (s "about")
+          map Page.Destiny (s "destiny")
+          map Page.Sessions (s "session")
+          map Page.ContactMe (s "contactMe")
+        ]
+let urlParser location = parsePath pageParser location
+
+type Model = { Page : Page }
+
+/// The navigation logic of the application given a page identity parsed from the .../#info
+/// information in the URL.
+let urlUpdate (result:Page option) (model:Model) =
+    match result with 
+    | None ->  { model with Page = Page.Home } , Cmd.none
+    | Some page ->  { model with Page = page } , Cmd.none
+
 
 // defines the initial state and initial command (= side-effect) of the application
-let init(): Model * Cmd<Msg> =
-    let initialModel = { Counter = None }
-    let loadCountCmd = Cmd.OfPromise.perform initialCounter () InitialCountLoaded
-    initialModel, loadCountCmd
+let init (p: Page option) =
+    { Page = Page.Home }, Cmd.none
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 // It can also run side-effects (encoded as commands) like calling the server via Http.
 // these commands in turn, can dispatch messages to which the update function will react.
 let update (msg: Msg) (currentModel: Model): Model * Cmd<Msg> =
-    match currentModel.Counter, msg with
-    | Some counter, Increment ->
-        let nextModel = { currentModel with Counter = Some { Value = counter.Value + 1 } }
-        nextModel, Cmd.none
-    | Some counter, Decrement ->
-        let nextModel = { currentModel with Counter = Some { Value = counter.Value - 1 } }
-        nextModel, Cmd.none
-    | _, InitialCountLoaded initialCount ->
-        let nextModel = { Counter = Some initialCount }
-        nextModel, Cmd.none
-    | _ -> currentModel, Cmd.none
+    { currentModel with Page = msg }, Navigation.newUrl (toPath msg)
 
-
-let safeComponents =
-    let components =
-        span []
-            [ a [ Href "https://github.com/SAFE-Stack/SAFE-template" ]
-                  [ str "SAFE  "
-                    str Version.template ]
-              str ", "
-              a [ Href "https://saturnframework.github.io" ] [ str "Saturn" ]
-              str ", "
-              a [ Href "http://fable.io" ] [ str "Fable" ]
-              str ", "
-              a [ Href "https://elmish.github.io" ] [ str "Elmish" ]
-              str ", "
-              a [ Href "https://fulma.github.io/Fulma" ] [ str "Fulma" ] ]
-
-    span []
-        [ str "Version "
-          strong [] [ str Version.app ]
-          str " powered by: "
-          components ]
-
-let show =
-    function
-    | { Counter = Some counter } -> string counter.Value
-    | { Counter = None } -> "Loading..."
-
-let button txt onClick =
-    Button.button
-        [ Button.IsFullWidth
-          Button.Color IsPrimary
-          Button.OnClick onClick ] [ str txt ]
-
-let navbarBotton name = 
-    Navbar.Item.a [ Navbar.Item.Option.Props [ Style [ FontSize "larger" ]]] [ str name ]
+let navbarBotton name dispatchFun = 
+    Navbar.Item.a [ 
+        Navbar.Item.Option.Props [ Style [ FontSize "larger" ]; OnClick dispatchFun ]
+        ] [ str name ]
 
 let sideImage imageUrl = 
     Image.image [] [ img [ Src imageUrl; Style [ Height "100vh"] ] ]
 
-let view (model: Model) (dispatch: Msg -> unit) =
-    div [ Style [ FontFamily "orpheus-pro" ] ]
-        [ Navbar.navbar [ Navbar.Color IsWhite ]
-           [ 
-             Navbar.Item.div
-               [ Navbar.Item.Option.Props
-                   [ Style [ FontFamily "orpheus-pro"; FontSize "xx-large" ] ] 
-               ] [ str "EmotionsOfLove" ]
-             Navbar.Item.div [] []
-             navbarBotton "Home"
-             navbarBotton "About"
-             navbarBotton "Destiny"
-             navbarBotton "Sessions"
-             navbarBotton "Contact Me"
-           ]; 
+let aboutView = div [] [ str "About" ]
+let homeView = 
            Tile.ancestor [ Tile.Option.Props [ Style [ 
                BackgroundImage "url(/images/background.jpg)"
                BackgroundSize "cover"  
-            //    Height "100vh"
-            //    OverflowStyle OverflowOptions.Auto 
               ] ] ]
               [ 
                 Tile.parent [ Tile.Modifiers [ Modifier.IsHidden (Screen.Mobile, true)] ] [
@@ -133,7 +108,25 @@ let view (model: Model) (dispatch: Msg -> unit) =
                 ]
 
                 Tile.parent [ ] [ Tile.child [ ] [ sideImage "/images/WomanHead320.png" ] ]
-         ]
+              ]
+
+let view (model: Model) (dispatch: Msg -> unit) =
+    div [ Style [ FontFamily "orpheus-pro" ] ]
+        [ Navbar.navbar [ Navbar.Color IsWhite ]
+           [ 
+             Navbar.Item.div
+               [ Navbar.Item.Option.Props
+                   [ Style [ FontFamily "orpheus-pro"; FontSize "xx-large" ] ] 
+               ] [ str "EmotionsOfLove" ]
+             Navbar.Item.div [] []
+             navbarBotton "Home" (fun _ -> dispatch Page.Home)
+             navbarBotton "About" (fun _ -> dispatch Page.About)
+             navbarBotton "Destiny" (fun _ -> dispatch Page.Destiny)
+             navbarBotton "Sessions" (fun _ -> dispatch Page.Sessions)
+             navbarBotton "Contact Me" (fun _ -> dispatch Page.ContactMe)
+            ] ;
+           div [] [ str ( toPath model.Page)];
+           homeView
         ]
         
 
@@ -143,6 +136,7 @@ open Elmish.HMR
 #endif
 
 Program.mkProgram init update view
+|> Program.toNavigable urlParser urlUpdate 
 #if DEBUG
 |> Program.withConsoleTrace
 #endif
