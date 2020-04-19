@@ -6,6 +6,7 @@ open Elmish.Navigation
 open Elmish.React
 open Fable.React
 open Fable.React.Props
+open Pages.Home
 open Fetch.Types
 open Thoth.Fetch
 open Fulma
@@ -29,19 +30,10 @@ type PageInfo = {
     view : ReactElement
 }
 
-let sideImage imageUrl = 
-    Image.image [] [ img [ Src imageUrl; Style [ Height "100vh"] ] ]
 
-let aboutView = div [] [ str "About" ]
-let homeView = 
-            Tile.ancestor [ Tile.Option.Props [ Style [ 
-               BackgroundImage "url(/images/background.jpg)"
-               BackgroundSize "cover"  
-              ] ] ]
-              [ 
-                Tile.parent [ Tile.Modifiers [ Modifier.IsHidden (Screen.Mobile, true)] ] [
-                  Tile.child [] [ sideImage "/images/ManHead320.png" ]
-                ]
+let aboutView = 
+    Tile.ancestor [ Tile.Option.Props [ Style [ BackgroundImage "url(/images/background.jpg)"; BackgroundSize "cover" ]]]
+        [ 
                 Tile.parent [ Tile.Size Tile.Is7; Tile.IsVertical] [
                   Tile.child [] []
                   Tile.child [ Tile.Option.Props [ Style [ PaddingLeft "7%"; PaddingRight "7%"]]] 
@@ -61,12 +53,12 @@ let homeView =
                   Tile.child [] []
                 ]
 
-                Tile.parent [ ] [ Tile.child [ ] [ sideImage "/images/WomanHead320.png" ] ]
-              ]
+                Tile.parent [ ] [ Tile.child [ ] [ sideImage "/images/river.png" ] ]
+        ]
 
 let pages = 
     dict [ 
-        Page.Home, { url  = "";  navbarTitle = "Home";view = homeView;  } 
+        Page.Home, { url  = "";  navbarTitle = "Home";view = Pages.Home.view;  } 
         Page.About, { url  = "about"; navbarTitle = "About";view = aboutView } 
         Page.Destiny, { url  = "destiny"; navbarTitle = "Destiny";view = div [][ str "Destiny"] } 
         Page.Sessions, { url  = "sessions"; navbarTitle = "Session";view = div [][ str "Session"] } 
@@ -109,8 +101,6 @@ let navbarBotton name dispatchFun =
     Navbar.Item.a [ 
         Navbar.Item.Option.Props [ Style [ FontSize "larger" ]; OnClick dispatchFun ]
         ] [ str name ]
-
-
 
 let view (model: Model) (dispatch: Msg -> unit) =
     div [ Style [ FontFamily "orpheus-pro" ] ]
